@@ -14,6 +14,14 @@ app.use(morgan(morganOption))
 app.use(cors())
 app.use(helmet())
 
+// Database Connection
+const knex = require('knex')
+const knexInstance = knex({
+  client: 'pg',
+  connection: //This needs to be sorted out
+});
+
+
 app.use(function errorHandler(error, req, res, next) {
   let response
   if (NODE_ENV === 'production') {
