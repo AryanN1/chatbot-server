@@ -4,11 +4,10 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
-
 const app = express()
 const { NODE_ENV } = process.env
-console.log(NODE_ENV)
 const morganOption = 'common';
+
 app.use(bodyParser.json())
 app.use(morgan(morganOption))
 app.use(cors())
@@ -18,8 +17,41 @@ app.use(helmet())
 const knex = require('knex')
 const knexInstance = knex({
   client: 'pg',
-  connection: //This needs to be sorted out
+  connection: process.env.DATABASE_URL
 });
+console.log(process.env.DATABASE_URL);
+
+Promise.all([
+    knexInstance.schema.createTableIfNotExists("registrationSchema", function (table) {
+      // Integer id
+      table.increments(); 
+      // Name
+      table.string('name');
+      // Address
+      table.string('address');
+      // Phone
+      table.string('phone');
+      // Email
+      table.string('email');
+      // Date
+      table.timestamp('created_at').defaultTo(knexInstance.fn.now())
+  }).then(function () {
+          return knexInstance("registrationSchema").insert([
+              {name: "A", address: "123 oak lane dr", phone: '555555555', email: 'Ab123@test.com',},
+          ]);
+      }
+  ),
+]);
+
+
+
+
+
+
+
+
+
+
 
 
 app.use(function errorHandler(error, req, res, next) {
