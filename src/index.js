@@ -35,24 +35,8 @@ Promise.all([
       table.string('email');
       // Date
       table.timestamp('created_at').defaultTo(knexInstance.fn.now())
-  }).then(function () {
-          return knexInstance("registrationSchema").insert([
-              {name: "A", address: "123 oak lane dr", phone: '555555555', email: 'Ab123@test.com',},
-          ]);
-      }
-  ),
+  })
 ]);
-
-
-
-
-
-
-
-
-
-
-
 
 app.use(function errorHandler(error, req, res, next) {
   let response
@@ -73,5 +57,6 @@ app.use(function errorHandler(error, req, res, next) {
 })
 
 require('../routes/dialogFlowRoutes')(app);
+
 console.log('didnt die')
 module.exports = app;

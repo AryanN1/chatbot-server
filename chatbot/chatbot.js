@@ -1,13 +1,20 @@
 const dialogflow = require('dialogflow');
 const structjson = require('./structjson');
 const config = require('../config/keys');
-
+const knex = require('knex')
+const knexInstance = knex({
+  client: 'pg',
+  connection: process.env.DATABASE_URL
+});
 const projectID = config.googleProjectID;
+const sessionId = config.dialogFlowSessionID;
+const languageCode = config.dialogFlowSessionLanguageCode;
 
 const credentials = {
   client_email: config.googleClientEmail,
   private_key: config.googlePrivateKey
 }
+
 
 //console.log(config)
 const sessionClient = new dialogflow.SessionsClient({projectID, credentials});
@@ -16,7 +23,7 @@ const sessionPath = sessionClient.sessionPath(config.googleProjectID, config.dia
 
 module.exports = {
   textQuery: async function (text, userID, parameters = {}) {
-    let sessionPath = sessionClient.sessionPath(projectID, sessionId + userId);
+    let sessionPath = sessionClient.sessionPath(projectID, sessionId + userID);
     let self = module.exports;
     const request = {
       session: sessionPath,
@@ -39,7 +46,7 @@ module.exports = {
   },
   eventQuery: async function (event, userID, parameters = {}) {
     let self = module.exports;
-    let sessionPath = sessionClient.sessionPath(projectId, sessionId + userID);
+    let sessionPath = sessionClient.sessionPath(projectID, sessionId + userID);
     const request = {
       session: sessionPath,
       queryInput: {
@@ -56,6 +63,25 @@ module.exports = {
   },
 
   handleAction: function (responses) {
+    let queryResult = responses[0].queryResult;
+    switch (queryResult.action){
+      case 'recommendcourses-yes':
+        if(queryResult.allRequiredParamsPresent) {
+          const { name, address, phone, email } = queryResult.parameters.fields;
+
+          knexInstance('registrationSchema').insert([
+            {
+              name: name.stringValue,
+              address: address.stringValue,
+              phone: phone.stringValue,
+              email: email.stringValue,
+            },
+        ])
+          .then(record => console.log(record))
+          .catch(err => console.log(err));
+        }
+        break;
+    }
     return responses;
-  }
+  },
 }
